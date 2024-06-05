@@ -1,4 +1,4 @@
-package nethttp
+package middleware
 
 import (
 	"net/http"
