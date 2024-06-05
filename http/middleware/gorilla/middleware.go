@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	obsvhttp "github.com/idnandre/gobsv/http"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -25,7 +26,10 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func TraceMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx, span := obsvhttp.Tracer.Start(r.Context(), r.Method+" "+r.URL.Path, trace.WithSpanKind(trace.SpanKindServer))
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
+
+		ctx, span := obsvhttp.Tracer.Start(r.Context(), r.Method+" "+path, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
 		newRequest := r.WithContext(ctx)
