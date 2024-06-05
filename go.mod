@@ -1,4 +1,4 @@
-module github.com/idnandre/go-obsv
+module github.com/idnandre/gobsv
 
 go 1.22
 

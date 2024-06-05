@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/idnandre/go-obsv/internal/metadata"
+	"github.com/idnandre/gobsv/internal/metadata"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"

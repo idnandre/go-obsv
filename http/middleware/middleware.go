@@ -3,7 +3,7 @@ package nethttp
 import (
 	"net/http"
 
-	obsvhttp "github.com/idnandre/go-obsv/http"
+	obsvhttp "github.com/idnandre/gobsv/http"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
