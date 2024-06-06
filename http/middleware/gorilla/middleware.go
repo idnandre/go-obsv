@@ -1,4 +1,4 @@
-package middleware
+package gorilla
 
 import (
 	"net/http"
