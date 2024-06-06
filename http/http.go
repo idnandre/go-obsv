@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/idnandre/gobsv/internal/metadata"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -16,11 +17,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var (
-	Tracer        trace.Tracer
 	meterProvider *sdkmetric.MeterProvider
 	traceProvider *sdktrace.TracerProvider
 	once          sync.Once
@@ -33,13 +32,14 @@ func New(ctx context.Context, otlpHttpTarget, serviceName string) {
 			log.Fatalf("failed to initialize exporter: %v", err)
 		}
 		traceProvider = newTraceProvider(exp, serviceName)
-		Tracer = traceProvider.Tracer(serviceName)
+		otel.SetTracerProvider(traceProvider)
 
 		expM, err := newOTLPMetricExporter(ctx, otlpHttpTarget)
 		if err != nil {
 			log.Fatalf("failed to initialize exporter: %v", err)
 		}
 		meterProvider = newMeterProvider(expM)
+		otel.SetMeterProvider(meterProvider)
 		addMetricsToOTEL(meterProvider, serviceName)
 	})
 }
