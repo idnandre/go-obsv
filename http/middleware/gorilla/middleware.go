@@ -43,7 +43,7 @@ func TraceMiddleware(next http.Handler) http.Handler {
 			attribute.String("http.method", r.Method),
 			attribute.String("http.url", path),
 			attribute.String("http.raw.query", r.URL.RawQuery),
-			attribute.String("http.route", r.URL.Path),
+			attribute.String("http.route", path),
 			attribute.String("http.target", path),
 			attribute.String("http.useragent", r.UserAgent()),
 			attribute.String("http.host", r.Host),
