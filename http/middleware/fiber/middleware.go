@@ -1,22 +1,26 @@
 package fiber
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func TraceMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		beforeNext := c.Route().Path
-		beforePath := c.Path()
-		err := c.Next()
-		afterNext := c.Route().Path
+		routePattern := ""
+		for _, route := range c.App().GetRoutes() {
+			if fiber.RoutePatternMatch(c.Path(), route.Path) {
+				routePattern = route.Path
+				break
+			}
+		}
 
-		fmt.Println("before path ", beforePath)
-		fmt.Println("before ", beforeNext)
-		fmt.Println("after ", afterNext)
+		ctx, span := otel.Tracer("").Start(c.Context(), c.Method()+" "+routePattern, trace.WithSpanKind(trace.SpanKindServer))
+		defer span.End()
 
-		return err
+		c.SetUserContext(ctx)
+
+		return c.Next()
 	}
 }
