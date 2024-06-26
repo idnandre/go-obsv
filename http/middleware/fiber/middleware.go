@@ -7,6 +7,14 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+type response struct {
+	Status int `json:"status,omitempty"`
+}
+
+func (r *response) Error() string {
+	return "error"
+}
+
 func TraceMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		routePattern := ""
@@ -22,7 +30,12 @@ func TraceMiddleware() fiber.Handler {
 
 		c.SetUserContext(ctx)
 
+		statusCode := 0
 		err := c.Next()
+		resp, ok := err.(*response)
+		if ok {
+			statusCode = resp.Status
+		}
 
 		span.SetAttributes(
 			attribute.String("span.kind", "server"),
@@ -34,7 +47,7 @@ func TraceMiddleware() fiber.Handler {
 			attribute.String("http.target", routePattern),
 			attribute.String("http.useragent", string(c.Context().UserAgent())),
 			attribute.String("http.host", string(c.Context().Host())),
-			attribute.Int("http.status_code", c.Response().Header.StatusCode()),
+			attribute.Int("http.status_code", statusCode),
 		)
 
 		return err
