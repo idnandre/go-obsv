@@ -1,6 +1,8 @@
 package fiber
 
 import (
+	"encoding/json"
+
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -32,9 +34,13 @@ func TraceMiddleware() fiber.Handler {
 
 		statusCode := 0
 		err := c.Next()
-		resp, ok := err.(*response)
+		resp, ok := err.(interface{})
 		if ok {
-			statusCode = resp.Status
+			respJson, _ := json.Marshal(resp)
+			rsp := &response{}
+			json.Unmarshal(respJson, &rsp)
+
+			statusCode = rsp.Status
 		}
 
 		span.SetAttributes(
