@@ -3,6 +3,7 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -21,6 +22,21 @@ func TraceMiddleware() fiber.Handler {
 
 		c.SetUserContext(ctx)
 
-		return c.Next()
+		err := c.Next()
+
+		span.SetAttributes(
+			attribute.String("span.kind", "server"),
+			attribute.String("resource.name", c.Method()+" "+c.Path()),
+			attribute.String("http.method", c.Method()),
+			attribute.String("http.url", routePattern),
+			attribute.String("http.raw.query", string(c.Context().URI().QueryString())),
+			attribute.String("http.route", routePattern),
+			attribute.String("http.target", routePattern),
+			attribute.String("http.useragent", string(c.Context().UserAgent())),
+			attribute.String("http.host", string(c.Context().Host())),
+			attribute.Int("http.status_code", c.Response().Header.StatusCode()),
+		)
+
+		return err
 	}
 }
