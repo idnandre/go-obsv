@@ -10,7 +10,7 @@ import (
 )
 
 type response struct {
-	Status int `json:"status,omitempty"`
+	Status int `json:"status"`
 }
 
 func (r *response) Error() string {
