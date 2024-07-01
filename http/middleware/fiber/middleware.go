@@ -9,11 +9,19 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type response struct {
+type responseStatus struct {
 	Status int `json:"status"`
 }
 
-func (r *response) Error() string {
+func (r *responseStatus) Error() string {
+	return "error"
+}
+
+type responseCode struct {
+	Code int `json:"code"`
+}
+
+func (r *responseCode) Error() string {
 	return "error"
 }
 
@@ -37,10 +45,17 @@ func TraceMiddleware() fiber.Handler {
 		resp, ok := err.(interface{})
 		if ok {
 			respJson, _ := json.Marshal(resp)
-			rsp := &response{}
-			json.Unmarshal(respJson, &rsp)
+			rspStatus := &responseStatus{}
+			rspCode := &responseCode{}
+			json.Unmarshal(respJson, &rspStatus)
+			json.Unmarshal(respJson, &rspCode)
 
-			statusCode = rsp.Status
+			if rspStatus.Status > 0 {
+				statusCode = rspStatus.Status
+			} else if rspCode.Code > 0 {
+				statusCode = rspCode.Code
+			}
+
 		}
 
 		span.SetAttributes(
