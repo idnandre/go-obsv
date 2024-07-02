@@ -42,20 +42,24 @@ func TraceMiddleware() fiber.Handler {
 
 		statusCode := 0
 		err := c.Next()
-		resp, ok := err.(interface{})
-		if ok {
-			respJson, _ := json.Marshal(resp)
-			rspStatus := &responseStatus{}
-			rspCode := &responseCode{}
-			json.Unmarshal(respJson, &rspStatus)
-			json.Unmarshal(respJson, &rspCode)
 
-			if rspStatus.Status > 0 {
-				statusCode = rspStatus.Status
-			} else if rspCode.Code > 0 {
-				statusCode = rspCode.Code
+		if len(c.Response().Body()) > 0 {
+			statusCode = c.Response().StatusCode()
+		} else {
+			resp, ok := err.(interface{})
+			if ok {
+				respJSON, _ := json.Marshal(resp)
+				rspStatus := &responseStatus{}
+				rspCode := &responseCode{}
+				json.Unmarshal(respJSON, &rspStatus)
+				json.Unmarshal(respJSON, &rspCode)
+
+				if rspStatus.Status > 0 {
+					statusCode = rspStatus.Status
+				} else if rspCode.Code > 0 {
+					statusCode = rspCode.Code
+				}
 			}
-
 		}
 
 		span.SetAttributes(
