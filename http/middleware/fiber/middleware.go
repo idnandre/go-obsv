@@ -38,7 +38,7 @@ func TraceMiddleware() fiber.Handler {
 		}
 
 		ctx := otel.GetTextMapPropagator().Extract(c.Context(), propagation.HeaderCarrier(c.GetReqHeaders()))
-		ctx, span := otel.Tracer("").Start(c.Context(), string(c.Context().Method())+" "+routePattern, trace.WithSpanKind(trace.SpanKindServer))
+		ctx, span := otel.Tracer("").Start(ctx, string(c.Context().Method())+" "+routePattern, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
 		c.SetUserContext(ctx)
