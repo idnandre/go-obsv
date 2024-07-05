@@ -7,6 +7,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -29,7 +30,8 @@ func TraceMiddleware(next http.Handler) http.Handler {
 		route := mux.CurrentRoute(r)
 		path, _ := route.GetPathTemplate()
 
-		ctx, span := otel.Tracer("").Start(r.Context(), r.Method+" "+path, trace.WithSpanKind(trace.SpanKindServer))
+		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+		ctx, span := otel.Tracer("").Start(ctx, r.Method+" "+path, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
 		newRequest := r.WithContext(ctx)

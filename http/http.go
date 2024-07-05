@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	otelmetric "go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -33,6 +34,7 @@ func New(ctx context.Context, otlpHttpTarget, serviceName string) {
 		}
 		traceProvider = newTraceProvider(exp, serviceName)
 		otel.SetTracerProvider(traceProvider)
+		otel.SetTextMapPropagator(propagation.TraceContext{})
 
 		expM, err := newOTLPMetricExporter(ctx, otlpHttpTarget)
 		if err != nil {

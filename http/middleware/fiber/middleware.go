@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -36,6 +37,7 @@ func TraceMiddleware() fiber.Handler {
 			}
 		}
 
+		ctx := otel.GetTextMapPropagator().Extract(c.Context(), propagation.HeaderCarrier(c.GetReqHeaders()))
 		ctx, span := otel.Tracer("").Start(c.Context(), string(c.Context().Method())+" "+routePattern, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
