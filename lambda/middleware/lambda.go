@@ -15,8 +15,10 @@ type handlerFunc func(context.Context, events.APIGatewayProxyRequest) (events.AP
 
 func TraceMiddleware(f handlerFunc) handlerFunc {
 	return func(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		path := event.Resource
+
 		newCtx := otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(event.MultiValueHeaders))
-		newCtx, span := otel.Tracer("").Start(newCtx, event.HTTPMethod+" "+event.Path, trace.WithSpanKind(trace.SpanKindServer))
+		newCtx, span := otel.Tracer("").Start(newCtx, event.HTTPMethod+" "+path, trace.WithSpanKind(trace.SpanKindServer))
 		defer lambda.ForceFlush(newCtx)
 		defer span.End()
 
@@ -24,11 +26,11 @@ func TraceMiddleware(f handlerFunc) handlerFunc {
 
 		span.SetAttributes(
 			attribute.String("span.kind", "server"),
-			attribute.String("resource.name", event.HTTPMethod+" "+event.Path),
+			attribute.String("resource.name", event.HTTPMethod+" "+path),
 			attribute.String("http.method", event.HTTPMethod),
-			attribute.String("http.url", event.Path),
-			attribute.String("http.route", event.Path),
-			attribute.String("http.target", event.Path),
+			attribute.String("http.url", path),
+			attribute.String("http.route", path),
+			attribute.String("http.target", path),
 			attribute.String("http.useragent", event.RequestContext.Identity.UserAgent),
 			attribute.Int("http.status_code", response.StatusCode),
 		)
