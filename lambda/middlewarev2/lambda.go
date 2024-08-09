@@ -2,7 +2,6 @@ package middlewarev2
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/idnandre/gobsv/lambda"
@@ -18,13 +17,7 @@ func TraceMiddleware(f handlerFunc) handlerFunc {
 	return func(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 		routPattern := event.RouteKey
 
-		headers := make(map[string][]string)
-		for key, values := range event.Headers {
-			valuesArray := strings.Split(values, ",")
-			headers[key] = valuesArray
-		}
-
-		newCtx := otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(headers))
+		newCtx := otel.GetTextMapPropagator().Extract(ctx, propagation.MapCarrier(event.Headers))
 		newCtx, span := otel.Tracer("").Start(newCtx, event.RequestContext.HTTP.Method+" "+routPattern, trace.WithSpanKind(trace.SpanKindServer))
 		defer lambda.ForceFlush(newCtx)
 		defer span.End()
